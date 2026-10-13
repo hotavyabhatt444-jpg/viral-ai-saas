@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0F172A" />
+  <meta name="description" content="ViralAI SaaS — AI Hook Generator, 3-Part Script Writer, Caption & SEO Hashtag Studio and Content Planner for Creators & Agencies." />
+  <title>ViralAI SaaS — Hooks · Scripts · Captions · Planner</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%236366F1'/><text x='50' y='68' font-size='54' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'>V</text></svg>" />
+
+  <link rel="stylesheet" href="/css/styles.css" />
+
+  <!-- Supabase JS as an ES Module (no bundler required) -->
+  <script type="importmap">
+    {
+      "imports": {
+        "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm"
+      }
+    }
+  </script>
+
+  <!-- UPI QR encoder (progressive enhancement, offline fallback handled in JS) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+</head>
+
+<body>
+<!-- ===================================================================== -->
+<!--  AUTH GATE                                                            -->
+<!-- ===================================================================== -->
+<section id="auth-screen" class="auth-screen" aria-label="Sign in">
+  <div class="auth-glow" aria-hidden="true"></div>
+
+  <div class="auth-card">
+    <div class="brand brand--lg">
+      <span class="brand__mark">V</span>
+      <div class="brand__text">
+        <strong>ViralAI SaaS</strong>
+        <small>Creator Growth OS</small>
+      </div>
+    </div>
+
+    <h1 id="auth-title">Welcome back, Creator 👋</h1>
+    <p class="muted" id="auth-subtitle">Sign in to generate hooks, scripts, captions &amp; plan your content calendar.</p>
+
+    <form id="auth-form" class="stack" novalidate>
+      <label class="field">
+        <span>Email address</span>
+        <input id="auth-email" type="email" autocomplete="email" placeholder="you@agency.com" required />
+      </label>
+
+      <label class="field">
+        <span>Password</span>
+        <input id="auth-password" type="password" autocomplete="current-password" placeholder="••••••••" minlength="6" required />
+      </label>
+
+      <p id="auth-error" class="form-error" role="alert" hidden></p>
+
+      <button id="auth-submit" class="btn btn--primary btn--block" type="submit">
+        <span class="btn__label">Sign In</span>
+        <span class="btn__spinner" aria-hidden="true"></span>
+      </button>
+
+      <button id="auth-toggle" class="btn btn--ghost btn--block" type="button">
+        New here? <strong>Create an account</strong>
+      </button>
+    </form>
+
+    <div class="auth-perks">
+      <span>⚡ 5s Hook Generation</span>
+      <span>🎬 Reel-Ready Scripts</span>
+      <span>🔒 UTR Verified Access</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<!--  APP SHELL                                                            -->
+<!-- ===================================================================== -->
+<div id="app-shell" class="app-shell" hidden>
+
+  <!-- ======================= SIDEBAR (DESKTOP) ======================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand__mark">V</span>
+      <div class="brand__text">
+        <strong>ViralAI SaaS</strong>
+        <small>Creator Growth OS</small>
+      </div>
+    </div>
+
+    <nav class="side-nav" aria-label="Primary">
+      <button class="nav-item is-active" data-screen="hooks">
+        <span class="nav-item__icon">🪝</span><span>Hook Generator</span>
+      </button>
+      <button class="nav-item" data-screen="script">
+        <span class="nav-item__icon">🎬</span><span>Script Writer</span>
+      </button>
+      <button class="nav-item" data-screen="caption">
+        <span class="nav-item__icon">#️⃣</span><span>Caption Studio</span>
+      </button>
+      <button class="nav-item" data-screen="planner">
+        <span class="nav-item__icon">🗓️</span><span>Content Planner</span>
+      </button>
+      <button class="nav-item" data-screen="billing">
+        <span class="nav-item__icon">💎</span><span>Pro Plan ₹99</span>
+      </button>
+    </nav>
+
+    <div class="sidebar__foot">
+      <div class="plan-chip" id="plan-chip">
+        <span class="plan-chip__dot"></span>
+        <span id="plan-chip-text">Loading plan…</span>
+      </div>
+
+      <div class="user-chip">
+        <span class="user-chip__avatar" id="user-avatar">U</span>
+        <span class="user-chip__meta">
+          <strong id="user-email">user@virali.ai</strong>
+          <small id="user-plan-label">Free trial</small>
+        </span>
+      </div>
+
+      <button id="btn-logout" class="btn btn--ghost btn--sm btn--block" type="button">Sign out</button>
+    </div>
+  </aside>
+
+  <!-- ============================ MAIN ============================== -->
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar__title">
+        <h2 id="screen-title">AI Hook Generator</h2>
+        <p id="screen-subtitle" class="muted">5 high-retention hooks, tuned to your tone.</p>
+      </div>
+
+      <div class="topbar__actions">
+        <span class="pill pill--plan" id="topbar-plan-pill">Free Trial</span>
+        <button class="btn btn--primary btn--sm" data-screen="billing" type="button">Upgrade ₹99</button>
+      </div>
+    </header>
+
+    <div class="screens">
+
+      <!-- ------------------------ HOOKS ---------------------------- -->
+      <section id="screen-hooks" class="screen is-active" data-screen="hooks">
+        <div class="grid grid--2">
+          <div class="card">
+            <div class="card__head">
+              <h3>Configure your hooks</h3>
+              <span class="badge">AI · 5 outputs</span>
+            </div>
+
+            <div class="stack">
+              <label class="field">
+                <span>Topic / Niche</span>
+                <input id="hook-topic" type="text" maxlength="160"
+                       placeholder="e.g. Fitness coaching for busy dads" />
+              </label>
+
+              <label class="field">
+                <span>Tone</span>
+                <select id="hook-tone">
+                  <option value="bold">Bold &amp; Contrarian 🔥</option>
+                  <option value="curiosity">Curiosity Gap 🤔</option>
+                  <option value="educational">Educational Authority 🎓</option>
+                  <option value="funny">Funny &amp; Relatable 😂</option>
+                  <option value="aspirational">Aspirational ✨</option>
+                  <option value="urgent">Urgent / FOMO ⏰</option>
+                </select>
+              </label>
+
+              <label class="field">
+                <span>Platform <em>(optional)</em></span>
+                <select id="hook-platform">
+                  <option value="Instagram Reels">Instagram Reels</option>
+                  <option value="YouTube Shorts">YouTube Shorts</option>
+                  <option value="TikTok">TikTok</option>
+                  <option value="LinkedIn">LinkedIn</option>
+                  <option value="X (Twitter)">X (Twitter)</option>
+                </select>
+              </label>
+
+              <button id="btn-generate-hooks" class="btn btn--primary btn--block" type="button">
+                <span class="btn__label">⚡ Generate 5 Viral Hooks</span>
+                <span class="btn__spinner" aria-hidden="true"></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="card card--output">
+            <div class="card__head">
+              <h3>Hook results</h3>
+              <button class="btn btn--ghost btn--xs" id="btn-copy-hooks" type="button">Copy all</button>
+            </div>
+            <div id="hooks-output" class="results" data-empty="Your 5 viral hooks will appear here.">
+              <div class="empty-state">
+                <span class="empty-state__icon">🪝</span>
+                <p>Your 5 viral hooks will appear here.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ------------------------ SCRIPT --------------------------- -->
+      <section id="screen-script" class="screen" data-screen="script">
+        <div class="grid grid--2">
+          <div class="card">
+            <div class="card__head">
+              <h3>Script brief</h3>
+              <span class="badge">Hook · Body · CTA</span>
+            </div>
+
+            <div class="stack">
+              <label class="field">
+                <span>Video subject</span>
+                <textarea id="script-subject" rows="4" maxlength="600"
+                          placeholder="e.g. 3 mistakes that kill your reel watch-time in the first 2 seconds"></textarea>
+              </label>
+
+              <div class="field-row">
+                <label class="field">
+                  <span>Target length</span>
+                  <select id="script-length">
+                    <option value="30 seconds">30 seconds (~75 words)</option>
+                    <option value="45 seconds">45 seconds (~110 words)</option>
+                    <option value="60 seconds" selected>60 seconds (~150 words)</option>
+                    <option value="90 seconds">90 seconds (~220 words)</option>
+                  </select>
+                </label>
+
+                <label class="field">
+                  <span>Tone</span>
+                  <select id="script-tone">
+                    <option value="conversational">Conversational</option>
+                    <option value="high-energy">High Energy</option>
+                    <option value="storytelling">Storytelling</option>
+                    <option value="authoritative">Authoritative</option>
+                    <option value="humorous">Humorous</option>
+                  </select>
+                </label>
+              </div>
+
+              <button id="btn-generate-script" class="btn btn--primary btn--block" type="button">
+                <span class="btn__label">🎬 Write Reel Script</span>
+                <span class="btn__spinner" aria-hidden="true"></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="card card--output">
+            <div class="card__head">
+              <h3>Script output</h3>
+              <button class="btn btn--ghost btn--xs" id="btn-copy-script" type="button">Copy script</button>
+            </div>
+            <div id="script-output" class="results" data-empty="Your 3-part reel script will appear here.">
+              <div class="empty-state">
+                <span class="empty-state__icon">🎬</span>
+                <p>Your 3-part reel script will appear here.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ------------------------ CAPTION -------------------------- -->
+      <section id="screen-caption" class="screen" data-screen="caption">
+        <div class="grid grid--2">
+          <div class="card">
+            <div class="card__head">
+              <h3>Caption brief</h3>
+              <span class="badge">SEO + Hashtags</span>
+            </div>
+
+            <div class="stack">
+              <label class="field">
+                <span>Video topic</span>
+                <textarea id="caption-topic" rows="3" maxlength="400"
+                          placeholder="e.g. How I got 100k views with 0 followers using carousel posts"></textarea>
+              </label>
+
+              <div class="field-row">
+                <label class="field">
+                  <span>Platform</span>
+                  <select id="caption-platform">
+                    <option value="Instagram">Instagram</option>
+                    <option value="YouTube">YouTube</option>
+                    <option value="TikTok">TikTok</option>
+                    <option value="LinkedIn">LinkedIn</option>
+                    <option value="X (Twitter)">X (Twitter)</option>
+                  </select>
+                </label>
+
+                <label class="field">
+                  <span>Keyword focus</span>
+                  <input id="caption-keyword" type="text" maxlength="80" placeholder="optional SEO keyword" />
+                </label>
+              </div>
+
+              <button id="btn-generate-caption" class="btn btn--primary btn--block" type="button">
+                <span class="btn__label">✨ Generate Caption + Hashtags</span>
+                <span class="btn__spinner" aria-hidden="true"></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="card card--output">
+            <div class="card__head">
+              <h3>Caption output</h3>
+              <button class="btn btn--ghost btn--xs" id="btn-copy-caption" type="button">Copy caption</button>
+            </div>
+            <div id="caption-output" class="results" data-empty="Your SEO caption & viral hashtags will appear here.">
+              <div class="empty-state">
+                <span class="empty-state__icon">#️⃣</span>
+                <p>Your SEO caption &amp; viral hashtags will appear here.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ------------------------ PLANNER -------------------------- -->
+      <section id="screen-planner" class="screen" data-screen="planner">
+        <div class="planner-toolbar">
+          <div class="planner-toolbar__meta">
+            <h3>Content Pipeline</h3>
+            <p class="muted">Drag cards between columns to move them forward.</p>
+          </div>
+          <button id="btn-add-card" class="btn btn--primary" type="button">+ New Idea</button>
+        </div>
+
+        <div class="kanban" id="kanban">
+          <section class="kanban__col" data-status="idea">
+            <header class="kanban__head"><span class="dot dot--idea"></span>Ideas <b data-count="idea">0</b></header>
+            <div class="kanban__list" data-list="idea"></div>
+          </section>
+
+          <section class="kanban__col" data-status="scripted">
+            <header class="kanban__head"><span class="dot dot--scripted"></span>Scripted <b data-count="scripted">0</b></header>
+            <div class="kanban__list" data-list="scripted"></div>
+          </section>
+
+          <section class="kanban__col" data-status="filmed">
+            <header class="kanban__head"><span class="dot dot--filmed"></span>Filmed <b data-count="filmed">0</b></header>
+            <div class="kanban__list" data-list="filmed"></div>
+          </section>
+
+          <section class="kanban__col" data-status="posted">
+            <header class="kanban__head"><span class="dot dot--posted"></span>Posted <b data-count="posted">0</b></header>
+            <div class="kanban__list" data-list="posted"></div>
+          </section>
+        </div>
+      </section>
+
+      <!-- ------------------------ BILLING -------------------------- -->
+      <section id="screen-billing" class="screen" data-screen="billing">
+        <div class="grid grid--billing">
+          <div class="card plan-card">
+            <div class="plan-card__ribbon">MOST POPULAR</div>
+            <h3 class="plan-card__name">ViralAI <span>Pro</span></h3>
+            <div class="plan-card__price">₹99 <small>/ 30 days</small></div>
+            <ul class="plan-card__features">
+              <li>✅ Unlimited AI Hook generations</li>
+              <li>✅ 3-Part Reel Script Writer</li>
+              <li>✅ SEO Caption &amp; Hashtag Studio</li>
+              <li>✅ Full Content Planner Kanban</li>
+              <li>✅ Priority AI model routing</li>
+            </ul>
+
+            <div class="plan-status" id="plan-status-box">
+              <div class="plan-status__row">
+                <span>Status</span><strong id="billing-plan-status">—</strong>
+              </div>
+              <div class="plan-status__row">
+                <span>Valid till</span><strong id="billing-plan-expiry">—</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card__head">
+              <h3>Pay via UPI</h3>
+              <span class="badge badge--success">Manual · UTR Verified</span>
+            </div>
+
+            <ol class="steps">
+              <li>Open any UPI app (GPay / PhonePe / Paytm).</li>
+              <li>Scan the QR or tap <em>Pay with UPI App</em> — exactly <strong>₹99.00</strong>.</li>
+              <li>Copy the <strong>12-digit UTR / Ref No.</strong> and submit below.</li>
+            </ol>
+
+            <div class="qr-box">
+              <canvas id="upi-qr" width="208" height="208" aria-label="UPI payment QR code"></canvas>
+              <img id="upi-qr-fallback" alt="UPI payment QR code" hidden />
+            </div>
+
+            <div class="upi-meta">
+              <div class="upi-meta__row"><span>UPI ID</span><code id="upi-id">6377121998-2@ybl</code></div>
+              <div class="upi-meta__row"><span>Payable</span><code>₹99.00 INR</code></div>
+            </div>
+
+            <a id="upi-link" class="btn btn--success btn--block" href="#"
+               target="_blank" rel="noopener">📲 Pay with UPI App</a>
+
+            <button id="btn-copy-upi" class="btn btn--ghost btn--sm btn--block" type="button">Copy UPI ID / Link</button>
+
+            <hr class="divider" />
+
+            <form id="utr-form" class="stack" novalidate>
+              <label class="field">
+                <span>12-digit UTR / Reference Number</span>
+                <input id="utr-input" type="text" inputmode="numeric" maxlength="12"
+                       pattern="\d{12}" placeholder="e.g. 415923876014" autocomplete="off" />
+                <small class="field__help">Found in your UPI app transaction history / receipt.</small>
+              </label>
+
+              <p id="utr-status" class="form-error" role="alert" hidden></p>
+              <p id="utr-success" class="form-success" role="status" hidden></p>
+
+              <button id="btn-verify-utr" class="btn btn--primary btn--block" type="submit">
+                <span class="btn__label">🔐 Verify UTR &amp; Activate Pro</span>
+                <span class="btn__spinner" aria-hidden="true"></span>
+              </button>
+            </form>
+
+            <div class="payment-history">
+              <h4>Payment history</h4>
+              <div id="payment-list" class="payment-list">
+                <p class="muted">No transactions yet.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /.screens -->
+  </main>
+
+  <!-- ==================== BOTTOM BAR (MOBILE) ====================== -->
+  <nav class="bottombar" aria-label="Mobile navigation">
+    <button class="tab is-active" data-screen="hooks"><span>🪝</span>Hook</button>
+    <button class="tab" data-screen="script"><span>🎬</span>Script</button>
+    <button class="tab" data-screen="caption"><span>#️⃣</span>Caption</button>
+    <button class="tab" data-screen="planner"><span>🗓️</span>Planner</button>
+    <button class="tab" data-screen="billing"><span>💎</span>Pro</button>
+  </nav>
+</div><!-- /#app-shell -->
+
+<!-- ===================================================================== -->
+<!--  LOCK OVERLAY (subscription expired)                                  -->
+<!-- ===================================================================== -->
+<div id="lock-overlay" class="lock-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="lock-title">
+  <div class="lock-overlay__scrim"></div>
+
+  <div class="lock-card">
+    <div class="lock-card__icon">🔒</div>
+    <h2 id="lock-title">Access Locked</h2>
+    <p class="muted">Your ViralAI <strong>Pro</strong> subscription has expired. Renew for <strong>₹99 / 30 days</strong> to unlock all AI modules.</p>
+
+    <div class="lock-qr">
+      <canvas id="lock-qr" width="180" height="180" aria-label="UPI payment QR code"></canvas>
+      <img id="lock-qr-fallback" alt="UPI payment QR code" hidden />
+    </div>
+
+    <div class="upi-meta">
+      <div class="upi-meta__row"><span>UPI ID</span><code>6377121998-2@ybl</code></div>
+      <div class="upi-meta__row"><span>Payable</span><code>₹99.00 INR</code></div>
+    </div>
+
+    <a id="lock-upi-link" class="btn btn--success btn--block" href="#" target="_blank" rel="noopener">📲 Pay with UPI App</a>
+
+    <form id="lock-utr-form" class="stack" novalidate>
+      <label class="field">
+        <span>12-digit UTR / Reference Number</span>
+        <input id="lock-utr-input" type="text" inputmode="numeric" maxlength="12"
+               pattern="\d{12}" placeholder="415923876014" autocomplete="off" />
+      </label>
+
+      <p id="lock-utr-status" class="form-error" role="alert" hidden></p>
+      <p id="lock-utr-success" class="form-success" role="status" hidden></p>
+
+      <button id="btn-lock-verify" class="btn btn--primary btn--block" type="submit">
+        <span class="btn__label">🔐 Verify UTR &amp; Unlock</span>
+        <span class="btn__spinner" aria-hidden="true"></span>
+      </button>
+    </form>
+
+    <button id="btn-lock-dismiss" class="btn btn--ghost btn--sm btn--block" type="button">View my data (read-only)</button>
+  </div>
+</div>
+
+<!-- ===================================================================== -->
+<!--  PLANNER ITEM MODAL                                                   -->
+<!-- ===================================================================== -->
+<div id="planner-modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="planner-modal-title">
+  <div class="modal__scrim" data-close-modal></div>
+  <div class="modal__panel">
+    <header class="modal__head">
+      <h3 id="planner-modal-title">New content idea</h3>
+      <button class="modal__close" type="button" data-close-modal aria-label="Close">✕</button>
+    </header>
+
+    <form id="planner-form" class="stack" novalidate>
+      <input type="hidden" id="planner-id" />
+
+      <label class="field">
+        <span>Title</span>
+        <input id="planner-title" type="text" maxlength="140" placeholder="e.g. "Stop scrolling" cold open" required />
+      </label>
+
+      <div class="field-row">
+        <label class="field">
+          <span>Platform</span>
+          <select id="planner-platform">
+            <option>Instagram</option>
+            <option>YouTube</option>
+            <option>TikTok</option>
+            <option>LinkedIn</option>
+            <option>X (Twitter)</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Stage</span>
+          <select id="planner-status">
+            <option value="idea">Idea</option>
+            <option value="scripted">Scripted</option>
+            <option value="filmed">Filmed</option>
+            <option value="posted">Posted</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="field">
+        <span>Scheduled date</span>
+        <input id="planner-date" type="date" />
+      </label>
+
+      <label class="field">
+        <span>Script content / notes</span>
+        <textarea id="planner-script" rows="5" placeholder="Paste your ViralAI script here…"></textarea>
+      </label>
+
+      <p id="planner-error" class="form-error" role="alert" hidden></p>
+
+      <div class="modal__actions">
+        <button id="btn-planner-delete" class="btn btn--danger btn--sm" type="button" hidden>Delete</button>
+        <button class="btn btn--ghost btn--sm" type="button" data-close-modal>Cancel</button>
+        <button id="btn-planner-save" class="btn btn--primary" type="submit">
+          <span class="btn__label">Save to pipeline</span>
+          <span class="btn__spinner" aria-hidden="true"></span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============================== TOASTS ============================== -->
+<div id="toast-root" class="toast-root" aria-live="polite" aria-atomic="true"></div>
+
+<!-- ============================== LOADER ============================== -->
+<div id="screen-loader" class="screen-loader" hidden>
+  <div class="loader-ring"></div>
+  <p id="loader-text">Generating with AI…</p>
+</div>
+
+<script type="module" src="/js/config.js"></script>
+<script type="module" src="/js/app.js"></script>
+</body>
+</html>
