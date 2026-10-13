@@ -1,0 +1,34 @@
+{
+  "name": "virali-ai-saas",
+  "version": "1.0.0",
+  "description": "ViralAI SaaS - AI Hook, Script, Caption Generator & Content Planner with Anti-Fraud Manual UPI (UTR Verified) Subscription Engine.",
+  "private": true,
+  "type": "module",
+  "main": "netlify/functions/generate-ai.js",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "node -e \"console.log('✅ ViralAI SaaS build OK (static + functions)')\"",
+    "start": "netlify dev",
+    "db:push": "echo 'Paste supabase/schema.sql into the Supabase SQL Editor'"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.36.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "viral-hooks",
+    "ai-script-writer",
+    "caption-generator",
+    "content-planner",
+    "supabase",
+    "netlify-functions",
+    "upi-utr-verification"
+  ],
+  "license": "MIT"
+}

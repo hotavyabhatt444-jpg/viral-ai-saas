@@ -1,0 +1,2 @@
+# Netlify SPA Rewrite Rule — every route resolves to the Single Page App shell
+/*    /index.html   200
